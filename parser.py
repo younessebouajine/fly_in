@@ -19,7 +19,7 @@ CONNECTION_RE = re.compile(
 )
 
 METADATA_ITEM_RE = re.compile(
-    r"(\w+)\s*=\s*([^\s\]]+)",
+    r"(\w+)\s*=\s*([^\s\]=]+)",
     re.IGNORECASE
 )
 
@@ -52,13 +52,15 @@ class Parser:
     def parse_line(self, line: str, line_no: int) -> None:
         lower_line = line.lower()
 
-        if self.nb_drones is None and not lower_line.startswith("nb_drones:"):
+        if self.nb_drones is None and not lower_line.startswith("nb_drones"):
             raise ParseError(
                 f"Error on line {line_no}: "
                 "nb_drones must be defined first"
             )
+
         if lower_line.startswith("nb_drones:"):
             self.parse_nb_drones(line, line_no)
+
         elif lower_line.startswith("start_hub:") or \
                 lower_line.startswith("hub:") or \
                 lower_line.startswith("end_hub:"):

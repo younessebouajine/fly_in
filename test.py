@@ -1,9 +1,12 @@
 from parser import Parser
+from pathlib import Path
 
 
 def main():
+    base = Path(__file__).parent
+    file_path = base / "maps" / "easy" / "01_linear_path.txt"
     parser = Parser()
-    parser.parse("map1.txt")
+    parser.parse(file_path)
 
     data = parser.build_map_data()
 
@@ -21,4 +24,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(e)
