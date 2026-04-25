@@ -49,57 +49,57 @@ class Parser:
             return ""
         return line.split('#')[0].strip()
 
-    def parse_line(self, line: str, line_no: int) -> None:
+    def parse_line(self, line: str, nu_line: int) -> None:
         lower_line = line.lower()
 
         if self.nb_drones is None and not lower_line.startswith("nb_drones"):
             raise ParseError(
-                f"Error on line {line_no}: "
+                f"Error on line {nu_line}: "
                 "nb_drones must be defined first"
             )
 
         if lower_line.startswith("nb_drones:"):
-            self.parse_nb_drones(line, line_no)
+            self.parse_nb_drones(line, nu_line)
 
         elif lower_line.startswith("start_hub:") or \
                 lower_line.startswith("hub:") or \
                 lower_line.startswith("end_hub:"):
-            self.parse_zone_line(line, line_no)
+            self.parse_zone_line(line, nu_line)
         elif lower_line.startswith("connection:"):
-            self.parse_connection_line(line, line_no)
+            self.parse_connection_line(line, nu_line)
         else:
-            raise ParseError(f"Error on line {line_no}: unknown line format")
+            raise ParseError(f"Error on line {nu_line}: unknown line format")
 
-    def parse_nb_drones(self, line: str, line_no: int) -> None:
+    def parse_nb_drones(self, line: str, nu_line: int) -> None:
         if self.nb_drones is not None:
             raise ParseError(
-                f"Error on line {line_no}: nb_drones is defined more than once"
+                f"Error on line {nu_line}: nb_drones is defined more than once"
             )
 
         match = NB_DRONES_RE.match(line)
         if not match:
             raise ParseError(
-                f"Error on line {line_no}: invalid nb_drones syntax"
+                f"Error on line {nu_line}: invalid nb_drones syntax"
             )
 
         value = int(match.group(1))
 
         if value <= 0:
             raise ParseError(
-                f"Error on line {line_no}: "
+                f"Error on line {nu_line}: "
                 "nb_drones must be a positive integer"
             )
 
         self.nb_drones = value
 
-    def parse_zone_line(self, line: str, line_no: int) -> None:
+    def parse_zone_line(self, line: str, nu_line: int) -> None:
         meta_data: dict[str, str] = {}
         final_dict: dict[str, Any] = {}
 
         match = ZONE_RE.match(line)
         if not match:
             raise ParseError(
-                f"Error on line {line_no}: invalid zone line syntax"
+                f"Error on line {nu_line}: invalid zone line syntax"
             )
 
         typezone = match.group(1)
@@ -109,7 +109,7 @@ class Parser:
 
         if match.group(5) is not None:
             metadata_text = match.group(5)
-            meta_data = self.parse_metadata(metadata_text, line_no, line)
+            meta_data = self.parse_metadata(metadata_text, nu_line, line)
 
         if "zone" not in meta_data:
             meta_data["zone"] = "normal"
@@ -119,10 +119,10 @@ class Parser:
             meta_data["max_drones"] = 1
 
         types_zone = {"normal", "blocked", "restricted", "priority"}
-        zone_type = meta_data.get("zone")
+        zone_type = meta_data.get("zone").lower()
         if zone_type not in types_zone:
             raise ParseError(
-                f"Error on line {line_no}: invalid zone type '{zone_type}'"
+                f"Error on line {nu_line}: invalid zone type '{zone_type}'"
             )
 
         color = meta_data.get("color")
@@ -131,18 +131,18 @@ class Parser:
             max_drones = int(meta_data.get("max_drones"))
         except (ValueError, TypeError):
             raise ParseError(
-                f"Error on line {line_no}: max_drones must be a valid integer"
+                f"Error on line {nu_line}: max_drones must be a valid integer"
             )
 
         if max_drones <= 0:
             raise ParseError(
-                f"Error on line {line_no}: "
+                f"Error on line {nu_line}: "
                 "max_drones must be a positive integer"
             )
 
         if name in self.zones:
             raise ParseError(
-                f"Error on line {line_no}: "
+                f"Error on line {nu_line}: "
                 f"zone '{name}' is defined more than once"
             )
 
@@ -163,7 +163,7 @@ class Parser:
                 self.start_zone = name
             else:
                 raise ParseError(
-                    f"Error on line {line_no}: "
+                    f"Error on line {nu_line}: "
                     "start_hub is defined more than once"
                 )
 
@@ -172,11 +172,11 @@ class Parser:
                 self.end_zone = name
             else:
                 raise ParseError(
-                    f"Error on line {line_no}: "
+                    f"Error on line {nu_line}: "
                     "end_hub is defined more than once"
                 )
 
-    def parse_metadata(self, metadata_text: str, line_no: int,
+    def parse_metadata(self, metadata_text: str, nu_line: int,
                        line: str) -> dict[str, str]:
         meta_data_dict: dict[str, str] = {}
 
@@ -193,7 +193,7 @@ class Parser:
             allowed_keys = {"zone", "color", "max_drones"}
         else:
             raise ParseError(
-                f"Error on line {line_no}: unknown metadata context"
+                f"Error on line {nu_line}: unknown metadata context"
             )
 
         matches = METADATA_ITEM_RE.findall(metadata_text)
@@ -202,7 +202,7 @@ class Parser:
             " ".join(f"{k}={v}" for k,
                      v in matches) != " ".join(metadata_text.strip().split()):
             raise ParseError(
-                f"Error on line {line_no}: invalid metadata syntax"
+                f"Error on line {nu_line}: invalid metadata syntax"
             )
 
         for key, value in matches:
@@ -210,27 +210,27 @@ class Parser:
 
             if key not in allowed_keys:
                 raise ParseError(
-                    f"Error on line {line_no}: invalid metadata key '{key}'"
+                    f"Error on line {nu_line}: invalid metadata key '{key}'"
                 )
 
             meta_data_dict[key] = value
 
         return meta_data_dict
 
-    def parse_connection_line(self, line: str, line_no: int) -> None:
+    def parse_connection_line(self, line: str, nu_line: int) -> None:
         meta_dict: dict[Any, Any] = {}
 
         match = CONNECTION_RE.match(line)
         if not match:
             raise ParseError(
-                f"Error on line {line_no}: invalid connection line syntax"
+                f"Error on line {nu_line}: invalid connection line syntax"
             )
 
         zone1 = match.group(1)
         zone2 = match.group(2)
 
         if match.group(3) is not None:
-            meta_dict = self.parse_metadata(match.group(3), line_no, line)
+            meta_dict = self.parse_metadata(match.group(3), nu_line, line)
 
         if "max_link_capacity" not in meta_dict:
             meta_dict["max_link_capacity"] = 1
@@ -239,32 +239,32 @@ class Parser:
             max_link_capacity = int(meta_dict.get("max_link_capacity"))
         except (ValueError, TypeError):
             raise ParseError(
-                f"Error on line {line_no}: "
+                f"Error on line {nu_line}: "
                 "max_link_capacity must be a valid integer"
             )
 
         if max_link_capacity <= 0:
             raise ParseError(
-                f"Error on line {line_no}: "
+                f"Error on line {nu_line}: "
                 "max_link_capacity must be a positive integer"
             )
 
         if zone1 not in self.zones or zone2 not in self.zones:
             raise ParseError(
-                f"Error on line {line_no}: "
+                f"Error on line {nu_line}: "
                 "connection uses undefined zone"
             )
 
         if zone1 == zone2:
             raise ParseError(
-                f"Error on line {line_no}: "
+                f"Error on line {nu_line}: "
                 "connection cannot link a zone to itself"
             )
 
         edge_key = tuple(sorted((zone1, zone2)))
         if edge_key in self.seen_edges:
             raise ParseError(
-                f"Error on line {line_no}: "
+                f"Error on line {nu_line}: "
                 "duplicate connection '{zone1}-{zone2}'"
             )
 
