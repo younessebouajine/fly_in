@@ -28,3 +28,15 @@ if __name__ == "__main__":
         main()
     except Exception as e:
         print(e)
+
+
+
+# from parser import Parser
+# from models import Zone, MapData, Connection
+
+# parser = Parser()
+# parser.parse("map.txt")
+# data = parser.build_map_data()
+
+
+# zones_objs = {name: Zone(**z) for name, z in data['zones'].items()}

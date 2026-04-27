@@ -1,6 +1,7 @@
 import re
 from exceptions import ParseError
 from typing import Any
+from matplotlib.colors import is_color_like
 
 
 NB_DRONES_RE = re.compile(
@@ -102,7 +103,7 @@ class Parser:
                 f"Error on line {nu_line}: invalid zone line syntax"
             )
 
-        typezone = match.group(1)
+        typezone = match.group(1).lower()
         name = match.group(2)
         x = int(match.group(3))
         y = int(match.group(4))
@@ -116,7 +117,10 @@ class Parser:
         if "color" not in meta_data:
             meta_data["color"] = None
         if "max_drones" not in meta_data:
-            meta_data["max_drones"] = 1
+            if typezone in ("start_hub", "end_hub"):
+                meta_data["max_drones"] = self.nb_drones
+            else:
+                meta_data["max_drones"] = 1
 
         types_zone = {"normal", "blocked", "restricted", "priority"}
         zone_type = meta_data.get("zone").lower()
@@ -126,6 +130,12 @@ class Parser:
             )
 
         color = meta_data.get("color")
+        if color is not None:
+            if not is_color_like(color):
+                raise ParseError(
+                    f"Error on line {nu_line}: '{color}'"
+                    "is an invalid color."
+                )
 
         try:
             max_drones = int(meta_data.get("max_drones"))
@@ -139,6 +149,14 @@ class Parser:
                 f"Error on line {nu_line}: "
                 "max_drones must be a positive integer"
             )
+
+        # if typezone == "start_hub" or typezone == "end_hub":
+        #     if max_drones <= 0 or max_drones != self.nb_drones:
+        #         raise ParseError(
+        #             f"Error on line {nu_line}: "
+        #             "max_drones must be equal nb of drones."
+        #         )
+            # meta_data["max_drones"] = self.nb_drones
 
         if name in self.zones:
             raise ParseError(
@@ -265,7 +283,7 @@ class Parser:
         if edge_key in self.seen_edges:
             raise ParseError(
                 f"Error on line {nu_line}: "
-                "duplicate connection '{zone1}-{zone2}'"
+                f"duplicate connection '{zone1}-{zone2}'"
             )
 
         connection_dict = {
@@ -295,6 +313,18 @@ class Parser:
 
         if len(self.connections) == 0:
             raise ParseError("no connections defined")
+        connections_zones = set()
+        for conn in self.connections:
+            connections_zones.add(conn["from"])
+            connections_zones.add(conn["to"])
+        if self.start_zone not in connections_zones:
+            raise ParseError(
+                f"The start_hub '{self.start_zone}' has no connections."
+            )
+        if self.end_zone not in connections_zones:
+            raise ParseError(
+                f"The end_hub '{self.end_zone}' has no connections."
+            )
 
     def build_map_data(self):
         return {
