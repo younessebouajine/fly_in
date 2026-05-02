@@ -131,7 +131,9 @@ class Parser:
 
         color = meta_data.get("color")
         if color is not None:
-            if not is_color_like(color):
+            if color == 'rainbow':
+                pass
+            elif not is_color_like(color):
                 raise ParseError(
                     f"Error on line {nu_line}: '{color}'"
                     "is an invalid color."

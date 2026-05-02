@@ -1,4 +1,2 @@
-end_hub: goal 3 8 [color=red max_drones=-1]
-end_hub: goal 3 8 [color=rainbow]
-# connection: waypoint2-goal
-# connection: start-waypoint1
+connection: goal-waypoint2
+start_hub: start 1 1 [color=red zone=normal max_drones=1]

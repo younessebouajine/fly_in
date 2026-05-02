@@ -3,7 +3,7 @@ from typing import List
 
 class Zone:
     def __init__(self, name: str, x: int, y: int, max_drones: int,
-                 zone_type: str, color: str) -> None:
+                 zone_type: str, color: str | None) -> None:
         self.name = name
         self.x = x
         self.y = y
@@ -12,41 +12,50 @@ class Zone:
         self.color = color
         self.drones: List["Drone"] = []     # nb of drones in this zone
 
-    def is_zone_full(self) -> bool:
+    def isFull(self) -> bool:
         """Check if the area has reached its maximum capacity"""
         return len(self.drones) >= self.max_drones
 
 
 class Connection:
-    def __init__(self, zone_a: Zone, zone_b: Zone,
+    def __init__(self, zoneA: Zone, zoneB: Zone,
                  max_link_capacity: int) -> None:
-        self.zones = {zone_a.name: zone_a, zone_b.name: zone_b}
+        self.zoneA = zoneA
+        self.zoneB = zoneB
         self.max_link_capacity = max_link_capacity
-        self.current_transit_count = 0
+        self.current_transit = 0
+
+    def connects(self, zone1: str, zone2: str) -> bool:
+        return (
+            (self.zoneA.name == zone1 and self.zoneB.name == zone2)
+            or
+            (self.zoneA.name == zone2 and self.zoneB.name == zone1)
+        )
 
 
 class Drone:
-    def __init__(self, drone_id: int, current_zone: Zone) -> None:
+    def __init__(self, drone_id: int, start_zone: Zone) -> None:
         self.drone_id = drone_id
-        self.start_zone = current_zone
+        self.start_zone = start_zone
         self.path: List[Zone] = []
+        self.in_transit = False
+        self.turns_remaining = 0  # this for restricted zones
 
 
 class MapData:
     def __init__(self, nb_drones: int, zones: dict[str, Zone],
                  connections: List[Connection],
-                 start_name: str, end_name: str):
+                 start: str, end: str):
         self.nb_drones = nb_drones
         self.zones = zones
         self.connections = connections
-        self.start_zone = zones[start_name]
-        self.end_zone = zones[end_name]
+        self.start_zone = zones[start]
+        self.end_zone = zones[end]
         self.neighbors: dict[str, List[Zone]] = self.build_neighbors()
 
     def build_neighbors(self) -> dict[str, List[Zone]]:
         adj = {name: [] for name in self.zones}
         for conn in self.connections:
-            z1, z2 = list(conn.zones.values())
-            adj[z1.name].append(z2)
-            adj[z2.name].append(z1)
+            adj[conn.zone_a.name].append(conn.zone_b)
+            adj[conn.zone_b.name].append(conn.zone_a)
         return adj
