@@ -12,7 +12,7 @@ class Zone:
         self.color = color
         self.drones: List["Drone"] = []     # nb of drones in this zone
 
-    def isFull(self) -> bool:
+    def is_full(self) -> bool:
         """Check if the area has reached its maximum capacity"""
         return len(self.drones) >= self.max_drones
 
@@ -56,6 +56,6 @@ class MapData:
     def build_neighbors(self) -> dict[str, List[Zone]]:
         adj = {name: [] for name in self.zones}
         for conn in self.connections:
-            adj[conn.zone_a.name].append(conn.zone_b)
-            adj[conn.zone_b.name].append(conn.zone_a)
+            adj[conn.zoneA.name].append(conn.zoneB)
+            adj[conn.zoneB.name].append(conn.zoneB)
         return adj
