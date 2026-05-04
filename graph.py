@@ -33,3 +33,48 @@ def build_graph(data: dict) -> MapData:
         end=data["end"]
     )
     return map_data
+
+
+
+
+
+# from models import Zone, Connection, MapData
+
+
+# def build_graph(data: dict) -> MapData:
+#     # --- Create zones ---
+#     zones: dict[str, Zone] = {}
+
+#     for name, z in data["zones"].items():
+#         zones[name] = Zone(
+#             name=z["name"],
+#             x=z["x"],
+#             y=z["y"],
+#             max_drones=z["max_drones"],
+#             zone_type=z["zone_type"],
+#             color=z["color"]
+#         )
+
+#     # --- Create connections ---
+#     connections: list[Connection] = []
+
+#     for c in data["connections"]:
+#         zoneA = zones[c["from"]]
+#         zoneB = zones[c["to"]]
+
+#         connections.append(
+#             Connection(
+#                 zoneA=zoneA,
+#                 zoneB=zoneB,
+#                 max_link_capacity=c["max_link_capacity"]
+#             )
+#         )
+
+#     # --- Build map ---
+#     return MapData(
+#         nb_drones=data["nb_drones"],
+#         zones=zones,
+#         connections=connections,
+#         start=data["start"],
+#         end=data["end"]
+#     )

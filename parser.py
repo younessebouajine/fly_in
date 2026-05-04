@@ -166,7 +166,7 @@ class Parser:
                 f"zone '{name}' is defined more than once"
             )
         
-        if typezone == "strat_hub":
+        if typezone == "start_hub":
             if meta_data.get("zone") == "blocked":
                 raise ParseError(
                     f"Error on line {nu_line}: "
@@ -224,6 +224,12 @@ class Parser:
             )
 
         matches = METADATA_ITEM_RE.findall(metadata_text)
+
+        # if not matches or \
+        #         " ".join(f"{k}={v}" for k, v in matches) != " ".join(metadata_text.strip().split()):
+        #     raise ParseError(
+        #         f"Error on line {nu_line}: invalid metadata syntax"
+        #     )
 
         if not matches or \
             " ".join(f"{k}={v}" for k,
