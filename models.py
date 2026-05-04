@@ -10,7 +10,7 @@ class Zone:
         self.max_drones = max_drones
         self.zone_type = zone_type
         self.color = color
-        self.drones: List["Drone"] = []     # nb of drones in this zone
+        self.drones: List["Drone"] = []     # all drones currently inside the zone
 
     def is_full(self) -> bool:
         """Check if the area has reached its maximum capacity"""
@@ -22,15 +22,18 @@ class Connection:
                  max_link_capacity: int) -> None:
         self.zoneA = zoneA
         self.zoneB = zoneB
-        self.max_link_capacity = max_link_capacity
-        self.current_transit = 0
+        self.max_link_capacity = max_link_capacity # Limits how many drones can pass at the same time
+        self.current_transit = 0 # how many drones are currently using this connection
 
+    """Checks if this connection links two zones"""
     def connects(self, zone1: str, zone2: str) -> bool:
         return (
             (self.zoneA.name == zone1 and self.zoneB.name == zone2)
             or
             (self.zoneA.name == zone2 and self.zoneB.name == zone1)
         )
+        # {self.zoneA.name, self.zoneB.name} == {zone1, zone2}
+
 
 
 class Drone:
@@ -38,11 +41,12 @@ class Drone:
         self.drone_id = drone_id
         self.start_zone = start_zone
         self.path: List[Zone] = []
-        self.in_transit = False
+        self.in_transit = False # Is drone currently moving
         self.turns_remaining = 0  # this for restricted zones
 
 
 class MapData:
+    """Represents the entire graph"""
     def __init__(self, nb_drones: int, zones: dict[str, Zone],
                  connections: List[Connection],
                  start: str, end: str):

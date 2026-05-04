@@ -1,7 +1,7 @@
 # Easy Level 1: Simple linear path
 nb_drones: 61111
 
-start_hub: start 1 1 [color=red zone=normal max_drones=61111]
+start_hub: start 1 1 [color=red zone=blocked max_drones=61111]
 hub: waypoint1 1 0 [color=red max_drones=10]
 hub: waypoint2 2 0 []
 end_hub: goal 8 8 [color=red]

@@ -165,6 +165,13 @@ class Parser:
                 f"Error on line {nu_line}: "
                 f"zone '{name}' is defined more than once"
             )
+        
+        if typezone == "strat_hub":
+            if meta_data.get("zone") == "blocked":
+                raise ParseError(
+                    f"Error on line {nu_line}: "
+                    "start hub can be blocked zone !!!"
+                )
 
         final_dict.update({
             "typezone": typezone,
