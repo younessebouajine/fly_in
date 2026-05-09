@@ -7,29 +7,31 @@
 # 5. Stop when you reach end_zone
 # 6. Reconstruct path using "came_from" dict
 
-import heapq
-from typing import List, Optional
-from models import Zone, MapData
+# import heapq
+# from typing import List, Optional
+# from models import Zone, MapData
 
-class PathFinder:
-    def __init__(self, map_data: MapData) -> None:
-        self.map_data = map_data
+# class PathFinder:
+#     def __init__(self, map_data: MapData) -> None:
+#         self.map_data = map_data
 
-    def get_move_cost(self, zone: Zone) -> int:
-        """Return movement cost based on zone type"""
-        ...
+#     def get_move_cost(self, zone: Zone) -> int:
+#         """Return movement cost based on zone type"""
+#         if zone.zone_type == "restricted":
+#             return 2
+#         return 1
 
-    def find_path(self, start: Zone, end: Zone) -> Optional[List[Zone]]:
-        """Dijkstra — returns shortest path or None if no path exists"""
-        ...
+#     def find_path(self, start: Zone, end: Zone) -> Optional[List[Zone]]:
+#         """Dijkstra — returns shortest path or None if no path exists"""
+#         ...
 
-    def reconstruct_path(self, came_from: dict, end: Zone) -> List[Zone]:
-        """Rebuild path from came_from dict"""
-        ...
+#     def reconstruct_path(self, came_from: dict, end: Zone) -> List[Zone]:
+#         """Rebuild path from came_from dict"""
+#         ...
 
-    def find_all_paths(self) -> List[List[Zone]]:
-        """Find paths for all drones"""
-        ...
+#     def find_all_paths(self) -> List[List[Zone]]:
+#         """Find paths for all drones"""
+#         ...
 
 
 # get_move_cost()     → returns 1 or 2 based on zone type
@@ -47,3 +49,123 @@ class PathFinder:
 # find_all_paths()    → calls find_path() for each drone
 #                       handles distributing drones across paths
 #                       returns list of paths
+
+
+import heapq
+from typing import List, Optional
+from models import Zone, MapData
+
+
+class PathFinder:
+    def __init__(self, map_data: MapData) -> None:
+        self.map_data = map_data
+
+    def get_move_cost(self, zone: Zone) -> int:
+        """Return movement cost based on zone type"""
+
+        if zone.zone_type == "blocked":
+            return float("inf")
+
+        if zone.zone_type == "restricted":
+            return 2
+
+        if zone.zone_type == "priority":
+            return 1
+
+        return 1
+
+    def find_path(self, start: Zone, end: Zone) -> Optional[List[Zone]]:
+        """Dijkstra — returns shortest path or None if no path exists"""
+
+        distances = {
+            zone_name: float("inf")
+            for zone_name in self.map_data.zones
+        }
+
+        distances[start.name] = 0
+
+        came_from: dict[str, str] = {}
+
+        priority_queue = [(0, start)]
+
+        visited = set()
+
+        while priority_queue:
+
+            current_distance, current_zone = heapq.heappop(priority_queue)
+
+            if current_zone.name in visited:
+                continue
+
+            visited.add(current_zone.name)
+
+            if current_zone.name == end.name:
+                return self.reconstruct_path(came_from, end)
+
+            neighbors = self.map_data.neighbors[current_zone.name]
+
+            for neighbor in neighbors:
+
+                if neighbor.zone_type == "blocked":
+                    continue
+
+                move_cost = self.get_move_cost(neighbor)
+
+                new_distance = current_distance + move_cost
+
+                if new_distance < distances[neighbor.name]:
+
+                    distances[neighbor.name] = new_distance
+
+                    came_from[neighbor.name] = current_zone.name
+
+                    heapq.heappush(
+                        priority_queue,
+                        (new_distance, neighbor)
+                    )
+
+        return None
+
+    def reconstruct_path(
+        self,
+        came_from: dict[str, str],
+        end: Zone
+    ) -> List[Zone]:
+        """Rebuild path from came_from dict"""
+
+        path = []
+
+        current_name = end.name
+
+        while current_name in came_from:
+
+            current_zone = self.map_data.zones[current_name]
+
+            path.append(current_zone)
+
+            current_name = came_from[current_name]
+
+        start_zone = self.map_data.zones[current_name]
+
+        path.append(start_zone)
+
+        path.reverse()
+
+        return path
+
+    def find_all_paths(self) -> List[List[Zone]]:
+        """Find paths for all drones"""
+
+        all_paths = []
+
+        start = self.map_data.start_zone
+        end = self.map_data.end_zone
+
+        for _ in range(self.map_data.nb_drones):
+
+            path = self.find_path(start, end)
+
+            if path is not None:
+                all_paths.append(path)
+
+        return all_paths

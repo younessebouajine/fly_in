@@ -35,7 +35,6 @@ class Connection:
         # {self.zoneA.name, self.zoneB.name} == {zone1, zone2}
 
 
-
 class Drone:
     def __init__(self, drone_id: int, start_zone: Zone) -> None:
         self.drone_id = drone_id

@@ -170,7 +170,14 @@ class Parser:
             if meta_data.get("zone") == "blocked":
                 raise ParseError(
                     f"Error on line {nu_line}: "
-                    "start hub can be blocked zone !!!"
+                    "start hub can't be blocked zone !!!"
+                )
+
+        if typezone == "end_hub":
+            if meta_data.get("zone") == "blocked":
+                raise ParseError(
+                    f"Error on line {nu_line}: "
+                    "end hub can't be blocked zone !!!"
                 )
 
         final_dict.update({
