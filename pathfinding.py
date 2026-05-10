@@ -7,31 +7,6 @@
 # 5. Stop when you reach end_zone
 # 6. Reconstruct path using "came_from" dict
 
-# import heapq
-# from typing import List, Optional
-# from models import Zone, MapData
-
-# class PathFinder:
-#     def __init__(self, map_data: MapData) -> None:
-#         self.map_data = map_data
-
-#     def get_move_cost(self, zone: Zone) -> int:
-#         """Return movement cost based on zone type"""
-#         if zone.zone_type == "restricted":
-#             return 2
-#         return 1
-
-#     def find_path(self, start: Zone, end: Zone) -> Optional[List[Zone]]:
-#         """Dijkstra — returns shortest path or None if no path exists"""
-#         ...
-
-#     def reconstruct_path(self, came_from: dict, end: Zone) -> List[Zone]:
-#         """Rebuild path from came_from dict"""
-#         ...
-
-#     def find_all_paths(self) -> List[List[Zone]]:
-#         """Find paths for all drones"""
-#         ...
 
 
 # get_move_cost()     → returns 1 or 2 based on zone type
@@ -63,66 +38,48 @@ class PathFinder:
     def get_move_cost(self, zone: Zone) -> int:
         """Return movement cost based on zone type"""
 
-        if zone.zone_type == "blocked":
-            return float("inf")
-
         if zone.zone_type == "restricted":
             return 2
-
-        if zone.zone_type == "priority":
-            return 1
 
         return 1
 
     def find_path(self, start: Zone, end: Zone) -> Optional[List[Zone]]:
-        """Dijkstra — returns shortest path or None if no path exists"""
-
-        distances = {
+        """
+        Find shortest path from start to end using Dijkstra.
+        Returns list of zones from start to end, or None if no path exists.
+        """
+        distances: dict[str, float] = {
             zone_name: float("inf")
             for zone_name in self.map_data.zones
         }
-
         distances[start.name] = 0
-
         came_from: dict[str, str] = {}
-
-        priority_queue = [(0, start)]
-
-        visited = set()
+        priority_queue: list[tuple[float, str]] = [(0, start.name)]
+        visited: set[str] = set()
 
         while priority_queue:
+            current_distance, current_name = heapq.heappop(priority_queue)
 
-            current_distance, current_zone = heapq.heappop(priority_queue)
-
-            if current_zone.name in visited:
+            if current_name in visited:
                 continue
+            visited.add(current_name)
 
-            visited.add(current_zone.name)
-
-            if current_zone.name == end.name:
+            if current_name == end.name:
                 return self.reconstruct_path(came_from, end)
 
-            neighbors = self.map_data.neighbors[current_zone.name]
+            current_zone = self.map_data.zones[current_name]
 
-            for neighbor in neighbors:
-
+            for neighbor in self.map_data.neighbors[current_name]:
                 if neighbor.zone_type == "blocked":
                     continue
 
                 move_cost = self.get_move_cost(neighbor)
-
                 new_distance = current_distance + move_cost
 
                 if new_distance < distances[neighbor.name]:
-
                     distances[neighbor.name] = new_distance
-
-                    came_from[neighbor.name] = current_zone.name
-
-                    heapq.heappush(
-                        priority_queue,
-                        (new_distance, neighbor)
-                    )
+                    came_from[neighbor.name] = current_name
+                    heapq.heappush(priority_queue, (new_distance, neighbor.name))
 
         return None
 
@@ -154,18 +111,17 @@ class PathFinder:
         return path
 
     def find_all_paths(self) -> List[List[Zone]]:
-        """Find paths for all drones"""
-
-        all_paths = []
+        """
+        Assign the shortest path to all drones.
+        Returns a list of paths, one per drone.
+        """
 
         start = self.map_data.start_zone
         end = self.map_data.end_zone
 
-        for _ in range(self.map_data.nb_drones):
+        path = self.find_path(start, end)
 
-            path = self.find_path(start, end)
+        if path is None:
+            return []
 
-            if path is not None:
-                all_paths.append(path)
-
-        return all_paths
+        return [path for _ in range(self.map_data.nb_drones)]
