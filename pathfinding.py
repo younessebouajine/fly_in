@@ -26,6 +26,27 @@
 #                       returns list of paths
 
 
+
+
+
+
+# {
+#     "start": [junction],
+
+#     "junction": [
+#         start,
+#         path_a,
+#         path_b
+#     ],
+
+#     "path_a": [junction, goal],
+
+#     "path_b": [junction, goal],
+
+#     "goal": [path_a, path_b]
+# }
+
+
 import heapq
 from typing import List, Optional
 from models import Zone, MapData
@@ -54,7 +75,7 @@ class PathFinder:
         }
         distances[start.name] = 0
         came_from: dict[str, str] = {}
-        priority_queue: list[tuple[float, str]] = [(0, start.name)]
+        priority_queue: list[tuple[float, str]] = [(0, start.name)] #(cost, zone_name)
         visited: set[str] = set()
 
         while priority_queue:
@@ -67,7 +88,7 @@ class PathFinder:
             if current_name == end.name:
                 return self.reconstruct_path(came_from, end)
 
-            current_zone = self.map_data.zones[current_name]
+            # current_zone = self.map_data.zones[current_name]
 
             for neighbor in self.map_data.neighbors[current_name]:
                 if neighbor.zone_type == "blocked":

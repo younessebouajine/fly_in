@@ -1,2 +1,43 @@
 connection: goal-waypoint2
 start_hub: start 1 1 [color=red zone=normal max_drones=1]
+
+
+
+###################################
+-------------> Graph Theory
+-------------> Graph
+
+Graph concept:
+Node ----------------> zone
+Edge ----------------> connection
+   A---B---C
+A and B and C are Zones
+A-B B-C are Connections
+
+
+--------------> Priority Queue
+
+
+________________> Weighted Graph
+
+________________> adjacency list
+
+---------------->   Parent Tracking
+
+types of heap:
+------> complete heap and incomplete heap 
+
+
+
+concept
+
+Graph	
+Weighted Graph	
+Dijkstra	
+Priority Queue / Heap
+BFS vs Dijkstra
+Parent Tracking
+Adjacency List	
+Path Reconstruction
+Greedy Algorithms
+

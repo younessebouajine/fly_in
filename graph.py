@@ -19,8 +19,8 @@ def build_graph(data: dict) -> MapData:
         zoneA = zones[c["from"]]
         zoneB = zones[c["to"]]
         connection = Connection(
-            zoneA= zoneA,
-            zoneB= zoneB,
+            zoneA=zoneA,
+            zoneB=zoneB,
             max_link_capacity=c["max_link_capacity"]
         )
         connections.append(connection)
